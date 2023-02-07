@@ -19,12 +19,13 @@ class UserAPITestCase(unittest.TestCase):
             testing_data = {
                 'login': 'Lena',
                 'password': '12134234',
-                'userMail': 'fdfdfdfdf',
+                'userMail': 'sinegor.nn@gmail.com',
                 'phoneNumber': '42424224424224'
 
             }
             result_response = http_client.post(f'/client/registration/', json=testing_data)
-            #print(result_response.request.url)
+            print (result_response.status_code)
+            print(result_response.text)
             assert result_response.status_code ==200, "Query processed with an error"
             
 
@@ -33,8 +34,7 @@ class UserAPITestCase(unittest.TestCase):
     #     with TestClient(self.app) as http_client:
     #         result_response = http_client.get(f'/')
     #         assert result_response.status_code ==200, "Query processed with an error"
-    #         print(result_response.status_code)
-    #         print(result_response.request.headers)
+    #         print(result_response.text)
             
             
     

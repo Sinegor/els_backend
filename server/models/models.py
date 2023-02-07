@@ -5,10 +5,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 class Registration_Client_Data (BaseModel):
-    login: str
-    userMail:str
-    password: str
-    phoneNumber: str
+    login: str = Field(...)
+    userMail:str = Field(...)
+    password: str = Field(...)
+    phoneNumber: str = Field (...)
     legal_help_applications: Union[None, List]
     payment_details: Union[None, str]
 

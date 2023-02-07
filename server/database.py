@@ -1,10 +1,13 @@
 import motor.motor_asyncio
+import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 
 
 MONGO_DETAILS = "mongodb://localhost:27017"
 
-my_mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
+my_mongo_client = AsyncIOMotorClient(MONGO_DETAILS)
+my_mongo_client.get_io_loop = asyncio.get_running_loop
 
 database = my_mongo_client.ELS
 

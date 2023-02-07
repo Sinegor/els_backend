@@ -2,9 +2,10 @@ from fastapi import FastAPI
 from typing import Union
 from starlette.responses import JSONResponse
 from pydantic import BaseModel
-from .models.models import Registration_Client_Data, Registration_Lawyer_Data
+from .models.models import Registration_Client_Data, Registration_Lawyer_Data, ResponseModel, Client_Registration_Schema
 # Модуль для разрешения CORS-запросов
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from server.routes.clients import router as Client_router
 from server.database import my_mongo_client, clients_collection
 from server.database_clients_methods import add_client
@@ -22,7 +23,7 @@ from server.database_clients_methods import add_client
 # Данный экземпляр, соответственно, обладает всеми необходимыми свойствами и методами:
 
 app = FastAPI()
-app.include_router(Client_router)
+#app.include_router(Client_router)
 # Список разрешённых адресов для CORS-запросов:
 origins = [
     "http://localhost",
@@ -42,6 +43,13 @@ app.add_middleware(
 async def read_root():
     return {"message": "Welcome to this fantastic app!"}
 
+@app.post("/client/registration", response_model=dict, response_description="Client data added into the database")
+async def add_client_data(data: Client_Registration_Schema):
+    client = jsonable_encoder(data)
+    print (f"Входные данные обработаны: {client}")
+    new_client = await add_client(client)
+    print (f"Полученные через асинхрон данные {new_client}")
+    return ResponseModel(new_client, "Client added successfully.")
 
 
 

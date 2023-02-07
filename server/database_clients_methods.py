@@ -1,5 +1,5 @@
+import motor
 import motor.motor_asyncio
-
 from bson import ObjectId
 
 from server.database import (MONGO_DETAILS, my_mongo_client, database,  
@@ -10,7 +10,7 @@ def client_info(client) -> dict:
     return {
         "id": str(client["_id"]),
         "login": client["login"],
-        "email": client["email"],
+        "userMail": client["userMail"],
         "phoneNumber": client["phoneNumber"],
         "legal_help_applications": client["legal_help_applications"]
         

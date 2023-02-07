@@ -22,6 +22,6 @@ router = APIRouter(prefix="/client", tags=["Client"])
 async def add_client_data(data: Client_Registration_Schema):
     print ('I am here!')
     client = jsonable_encoder(data)
-    new_client = await add_client(data)
+    new_client = await add_client(client)
     return ResponseModel(new_client, "Client added successfully.")
 
