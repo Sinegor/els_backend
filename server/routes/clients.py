@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Body
-from fastapi.encoders import jsonable_encoder
-
+from fastapi import APIRouter, Body, Request
+#from fastapi.encoders import jsonable_encoder
+from fastapi import Depends, status as response_status, HTTPException, Request, Response
 from server.database_clients_methods import (
     add_client,
     delete_client,
@@ -10,18 +10,14 @@ from server.database_clients_methods import (
 )
 from server.models.models import (
     ErrorResponseModel,
-    ResponseModel,
-    Client_Registration_Schema,
-    Registration_Client_Data
-    #UpdateStudentModel,
+    User_Client_Registration_Schema, User_Client
 )
 
 router = APIRouter(prefix="/client", tags=["Client"])
 
-@router.post("/registration", response_model=Registration_Client_Data, response_description="Client data added into the database")
-async def add_client_data(data: Client_Registration_Schema):
-    print ('I am here!')
-    client = jsonable_encoder(data)
-    new_client = await add_client(client)
-    return ResponseModel(new_client, "Client added successfully.")
+@router.post("/registration",response_description="Client data added into the database", 
+            status_code=response_status.HTTP_201_CREATED)
 
+def registration_client_user(request:Request, new_client:User_Client)->str:  
+        result = add_client(new_client)
+        return str(result.inserted_id)
