@@ -1,35 +1,16 @@
-import motor
-import motor.motor_asyncio
 from bson import ObjectId
-
+import pymongo
 from server.database import (my_mongo_client, database,  
                      lawyers_collection, clients_collection,)
 from server.models.models import User_Client_Registration_Schema, User_Client
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+import json
+import typing
+from typing import Union
+
+crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
                     
-
-def client_info(client) -> dict:
-    return {
-        "_id": str(client["_id"]),
-        "login": client["login"],
-        "userMail": client["userMail"],
-        "phoneNumber": client["phoneNumber"],
-        "legal_help_applications": client["legal_help_applications"]
-        
-    }
-
-# Retrieve all clients present in the database
-def retrieve_clients():
-    clients = []
-    for client in clients_collection.find():
-        clients.append(client_info(client))
-    return clients
-
-# Retrieve a client with a matching ID
-def retrieve_client(id: str) -> dict:
-    client = clients_collection.find_one({"_id": ObjectId(id)})
-    if client:
-        return client_info(client)
-
 # Add a new client into to the database
 def add_client(client_data: User_Client):
     new_client = clients_collection.insert_one(client_data.dict())
@@ -58,3 +39,7 @@ def delete_client(id: str):
         clients_collection.delete_one({"_id": ObjectId(id)})
         return True
     return False # необходимо прописать ошибку отсутствия такого клиента.
+
+
+
+

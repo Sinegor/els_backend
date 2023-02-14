@@ -2,7 +2,9 @@ from typing import Union, List, Any, Dict, Optional
 from pydantic import BaseModel, Field, EmailStr
 from bson import ObjectId
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
+from passlib.context import CryptContext
+import os
+crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class PydanticObjectId(ObjectId):
     @classmethod
@@ -22,12 +24,16 @@ class Basic_User (BaseModel):
     login: str = Field(...)
     userMail:EmailStr = Field(...)
     email_verified: Optional[bool]
-    password: str = Field(...)
+    password: Union[str, bytes] = Field(...)
     phoneNumber: str = Field (...)
     details: Optional[UserDetails]
+    disabled: Union[bool, None]
     last_activity: Optional[str] # need to change "str" for another type
     last_modification: Optional[str] # need to change "str" for another type
     modified_by: Optional[str] # need to think about, may be it is not neсessary
+    
+    def hash_password(self,password:str):
+        return crypto_context.hash(password)
     
     def is_admin(self)-> bool:
         pass
@@ -37,7 +43,6 @@ class Basic_User (BaseModel):
 
     def create_disput(self):
         pass
-
 
 
 class User_Client (Basic_User):
@@ -131,10 +136,6 @@ class User_Lawyer_Registration_Schema(BaseModel):
             }
         }
 
-# class Client_applicant (Registration_Client_Data):
-#       needs_help_name: str
-#       nedds_help_surname: str
-
 
 class Legal_aid_application(BaseModel):
      id_client: PydanticObjectId
@@ -153,26 +154,14 @@ class Authorization_data(BaseModel):
     type: str # юрист или заказчик
     is_admin: bool
 
-# class HTTPException(StarletteHTTPException):
-#     def __init__(
-#         self,
-#         status_code: int,
-#         detail: Any = None,
-#         headers: Optional[Dict[str, Any]] = None,
-#     ) -> None:
-#         super().__init__(status_code=status_code, detail=detail)
-#         self.headers = headers
-
-
-# Information is taken from the site. It is not clear why the functions and not classes:
-# class ResponseModel(data, message):
-#     return {
-#         "data": data,
-#         #"code": code,
-#         "message": message,
-#     }
-
 
 def ErrorResponseModel(error, code, message):
     return {"error": error, "code": code, "message": message}
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
 
