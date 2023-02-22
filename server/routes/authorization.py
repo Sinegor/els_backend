@@ -1,26 +1,34 @@
 from datetime import datetime, timedelta
 from typing import Union
-from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
+from fastapi import Depends, FastAPI, HTTPException, status, APIRouter, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import  status as response_status
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from server.database import database
 import os
 import dotenv
-from server.models.models import Basic_User, Token, TokenData
-from server.database_users_methods import get_user
-from dotenv import load_dotenv
 import pymongo
+from dotenv import load_dotenv
+
+from server.database import database
+from server.models.models import Basic_User, Token, TokenData, User_Client
+from server.database_users_methods import get_user
+from server.database_clients_methods import (
+    add_client,
+    
+)
+from server.database_users_methods import registration_checking
 
 load_dotenv()
 
-router = APIRouter(prefix="/authorization", tags=['Authorization'])
+router = APIRouter(tags=['Authorization'])
 crypto_key = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
 
 def verify_password(checking_password, hashed_password) ->bool:
         return crypto_context.verify(checking_password, hashed_password)
@@ -70,12 +78,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 def get_current_active_user(current_user: Basic_User = Depends(get_current_user)):
-    if current_user.disabled:
+    if current_user['disabled']:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-@router.post("/token", response_model=Token)
+@router.post("/auth", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(database, 'Users_client', form_data.username, form_data.password)
     if not user:
@@ -92,11 +100,29 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @router.get("/users/me/", response_model=Basic_User)
-async def read_users_me(current_user: Basic_User = Depends(get_current_active_user)):
+def read_users_me(current_user: Basic_User = Depends(get_current_active_user)):
     return current_user
 
 
 @router.get("/users/me/items/")
-async def read_own_items(current_user: Basic_User = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+def read_own_items(current_user: Basic_User = Depends(get_current_active_user)):
+    return [{"item_id": "Foo", "owner": current_user['login']}]
+
+
+@router.post("/auth/registration",response_description="Client data added into the database", 
+            status_code=response_status.HTTP_201_CREATED)
+def registration_client_user(request:Request, new_client:User_Client):
+    try:        
+        result_check = registration_checking(database, 'Users_client',new_client)
+        if not result_check:
+            raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
+                                headers={"X-Error": "There goes my error"})
+        new_client.password = new_client.hash_password(new_client.password)
+        result = add_client(new_client)
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        return create_access_token(data=dict(new_client), expires_delta=access_token_expires)
+    except HTTPException as e:
+        print (e.detail)
+        raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
+                                headers={"X-Error": "There goes my error"})        
 

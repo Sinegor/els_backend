@@ -21,6 +21,7 @@ class UserDetails(BaseModel):
     meta: Optional[Dict[str, str]]  # need to think about, may be it is not neсessary
 
 class Basic_User (BaseModel):
+    external_id: Optional[str]
     login: str = Field(...)
     userMail:EmailStr = Field(...)
     email_verified: Optional[bool]
@@ -138,7 +139,8 @@ class User_Lawyer_Registration_Schema(BaseModel):
 
 
 class Legal_aid_application(BaseModel):
-     id_client: PydanticObjectId
+     external_id: Optional[str]
+     id_client: Union[PydanticObjectId, str]
      type: str # указывается один из трёх вариантов работы приложения
      date: str
      place: dict #  объект со свойствами: геолокация (значение могут быть координаты или false ), 

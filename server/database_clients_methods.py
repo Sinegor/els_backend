@@ -14,7 +14,6 @@ crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Add a new client into to the database
 def add_client(client_data: User_Client):
     new_client = clients_collection.insert_one(client_data.dict())
-    #new_client = clients_collection.find_one({"_id": client.inserted_id})
     return (new_client)
 
 # Update a client with a matching ID

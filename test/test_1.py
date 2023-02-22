@@ -15,35 +15,34 @@ class UserAPITestCase(unittest.TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
 
-    def test_start(self):
+    def test_new_registration(self):
         with TestClient(self.app) as http_client:
             testing_data = {
-                'login': 'Armen_21',
+                'login': 'SuperMario',
                 'password': 'wzadnn',
-                'userMail': 'sin.nn@gmal.com',
-                'phoneNumber': '422442224'
+                'userMail': 'sie.inn@gmal.com',
+                'phoneNumber': '24'
 
             }
-            result_response = http_client.post(f'/client/registration/', json=testing_data)
+            result_response = http_client.post(f'/auth/registration/', json=testing_data)
             print(result_response.status_code)
+            print(result_response.text)
             assert result_response.status_code ==201, "Query processed with an error"
-            
-
     
-    # def test_start_1(self):
-    #     with TestClient(self.app) as http_client:
-    #         result_response = http_client.get(f'/items/', headers={'Authorization':'Bearer'})
-    #         print(f"Ответ: {result_response.headers}")
-    #         print (result_response.request.headers)
-    #         assert result_response.status_code ==200, "Query processed with an error"
             
     # def test_login(self):
     #     with TestClient(self.app) as http_client:
     #         test_data = {
-    #                 'username':'Armen',
+    #                 'username':'Arny_big',
     #                 'password':'wzadnn'
     #         }
-    #         return_response = http_client.post(f'/authorization/token', data=test_data)
+    #         return_response = http_client.post(f'/auth', data=test_data)
     #         print(return_response.text)
     #         assert return_response.status_code == 200, "Something is wrong!"
             
+    # def test_check_current_user(self):
+    #     with TestClient(self.app) as http_client:
+    #         result_response = http_client.get (f'/users/me/')
+    #         print (result_response.request.url)
+    #         print(result_response.status_code)
+                     
