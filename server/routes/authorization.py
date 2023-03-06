@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Union
-from fastapi import Depends, FastAPI, HTTPException, status, APIRouter, Request
+from fastapi import Depends, FastAPI, HTTPException, status, APIRouter, Request, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import  status as response_status
 from jose import JWTError, jwt
@@ -25,10 +25,13 @@ load_dotenv()
 router = APIRouter(tags=['Authorization'])
 crypto_key = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
+
+
 
 def verify_password(checking_password, hashed_password) ->bool:
         return crypto_context.verify(checking_password, hashed_password)
@@ -64,6 +67,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
+        print (payload)
         username: str = payload.get("login")
         if username is None:
             raise credentials_exception
@@ -83,7 +87,7 @@ def get_current_active_user(current_user: Basic_User = Depends(get_current_user)
     return current_user
 
 
-@router.post("/auth", response_model=Token)
+@router.post("/auth")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(database, 'Users_client', form_data.username, form_data.password)
     if not user:
@@ -96,15 +100,20 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(
         data=user, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    response = Response(access_token)
+    
+    response.set_cookie('Authorization', access_token)
+    return (response)
+    
+    
 
 
-@router.get("/users/me/", response_model=Basic_User)
+@router.get("/auth/users/me/", response_model=Basic_User)
 def read_users_me(current_user: Basic_User = Depends(get_current_active_user)):
     return current_user
 
 
-@router.get("/users/me/items/")
+@router.get("/auth/users/me/items/")
 def read_own_items(current_user: Basic_User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user['login']}]
 
@@ -126,3 +135,8 @@ def registration_client_user(request:Request, new_client:User_Client):
         raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
                                 headers={"X-Error": "There goes my error"})        
 
+
+@router.get("/auth/test/")
+async def auth_test(token):
+    user_frontend_info = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
+    return (user_frontend_info)

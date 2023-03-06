@@ -28,19 +28,22 @@ app = FastAPI()
 # Список разрешённых адресов для CORS-запросов:
 origins = [
     "http://localhost",
-    'http://localhost:3000',
-    "http://localhost:8080",
-]
+    "https://localhost",
+    "http://localhost:3000",
+    "https://localhost:3000",
+ ]
 # practic of auth:
 
 
 # Список того, что разрешено передавать и какими методами пользоваться:
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins = origins,
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+    
+    
 )
 
 @app.get("/", tags=["Root"])

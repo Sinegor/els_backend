@@ -17,8 +17,8 @@ class PydanticObjectId(ObjectId):
         return str(v)
 
 class UserDetails(BaseModel):
-    roles: Optional[List[str]] # need to think about, for example client andl lawyer, may be also role in application or rating
-    meta: Optional[Dict[str, str]]  # need to think about, may be it is not neсessary
+    roles: Optional[List[str]] # need to think about, for example: 1. client 2. lawyer 3. admin with value tru/false, 
+    meta: Optional[Dict[str, str]]  # need to think about (may be also role in application or rating), may be it is not neсessary
 
 class Basic_User (BaseModel):
     external_id: Optional[str]
