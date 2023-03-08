@@ -15,7 +15,7 @@ def registration_checking (db, collection, checking_user):
             {'phoneNumber':checking_user.phoneNumber}]}, 
             projection={'login':True, 'userMail':True, 'phoneNumber':True, '_id':False})
     if not result:
-        return True
+        return False
     exist_data_fields = []
     [exist_data_fields.append(key) for key in result if result[key]== (dict(checking_user))[key]]
     return ', '.join(exist_data_fields)

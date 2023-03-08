@@ -10,6 +10,7 @@ import os
 import dotenv
 import pymongo
 from dotenv import load_dotenv
+import json
 
 from server.database import database
 from server.models.models import Basic_User, Token, TokenData, User_Client
@@ -19,73 +20,14 @@ from server.database_clients_methods import (
     
 )
 from server.database_users_methods import registration_checking
-
+from server.routes.auth._router import auth_router as router
+from server.auth_users_methods import ( verify_password, authenticate_user, create_access_token,
+                                       get_current_user, get_current_active_user)
 load_dotenv()
 
 router = APIRouter(tags=['Authorization'])
-crypto_key = os.getenv('SECRET_KEY')
-ALGORITHM = "HS256"
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
-crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
-
-
-
-def verify_password(checking_password, hashed_password) ->bool:
-        return crypto_context.verify(checking_password, hashed_password)
-
-
-def authenticate_user(db, collection, login: str, checking_password: str):
-    searching_obj = {'login':login}
-    user = get_user(db, collection, searching_obj)
-    if not user:
-        return False
-    if not verify_password(checking_password, user['password']):
-        return False
-    user['_id'] = str(user['_id'])
-    return user
-
-
-def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, crypto_key, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
-        print (payload)
-        username: str = payload.get("login")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    searching_obj = {'login':token_data.username}
-    user = get_user(database, 'Users_client', searching_obj)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-def get_current_active_user(current_user: Basic_User = Depends(get_current_user)):
-    if current_user['disabled']:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
+ALGORITHM = os.getenv('ALGORITHM_FOR_AUTH')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
 @router.post("/auth")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -100,14 +42,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(
         data=user, expires_delta=access_token_expires
     )
-    response = Response(access_token)
-    
+    data_response = {
+        'token': access_token,
+        'user': user['login']
+    }
+    response = Response(json.dumps(data_response))
     response.set_cookie('Authorization', access_token)
     return (response)
     
-    
-
-
 @router.get("/auth/users/me/", response_model=Basic_User)
 def read_users_me(current_user: Basic_User = Depends(get_current_active_user)):
     return current_user
@@ -119,24 +61,31 @@ def read_own_items(current_user: Basic_User = Depends(get_current_active_user)):
 
 
 @router.post("/auth/registration",response_description="Client data added into the database", 
-            status_code=response_status.HTTP_201_CREATED)
+            status_code=response_status.HTTP_201_CREATED, )
 def registration_client_user(request:Request, new_client:User_Client):
     try:        
         result_check = registration_checking(database, 'Users_client',new_client)
-        if not result_check:
+        if result_check:
             raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
                                 headers={"X-Error": "There goes my error"})
         new_client.password = new_client.hash_password(new_client.password)
         result = add_client(new_client)
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        return create_access_token(data=dict(new_client), expires_delta=access_token_expires)
+        access_token = create_access_token(data=dict(new_client), expires_delta=access_token_expires)
+        response_data = {
+            'token': access_token,
+            'user': new_client.login,
+        }
+        response = Response (json.dumps(response_data))
+        response.set_cookie('Authorization', access_token)
+        return response
     except HTTPException as e:
         print (e.detail)
         raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
                                 headers={"X-Error": "There goes my error"})        
 
 
-@router.get("/auth/test/")
-async def auth_test(token):
-    user_frontend_info = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
-    return (user_frontend_info)
+# @router.get("/auth/test/")
+# async def auth_test(token):
+#     user_frontend_info = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
+#     return (user_frontend_info)
