@@ -6,9 +6,15 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import os
 import dotenv
-
 from dotenv import load_dotenv
 import json
+import smtplib
+
+import smtplib
+from os import getenv
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.message import EmailMessage
 
 from server.models.models import Basic_User, Token, TokenData, User_Client
 from server.database_users_methods import get_user
@@ -20,6 +26,7 @@ from server.database_users_methods import registration_checking
 from server.routes.auth._router import auth_router as router
 from server.database import database
 from server.dependencies import oauth2_scheme
+
 
 load_dotenv()
 crypto_key = os.getenv('SECRET_KEY')
@@ -79,3 +86,18 @@ def get_current_active_user(current_user: Basic_User = Depends(get_current_user)
     if current_user['disabled']:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+def push_auth_email(email, name):
+    SMT_LOGIN = getenv ("SMT_LOGIN")
+    SMT_PASS = getenv ('SMT_PASS')
+    text = f'{name} для окончания регистрации вам необходимо пройти по ссылке: "http://localhost/auth/registration/starting"'
+    auth_msg = EmailMessage()
+    auth_msg['Subject'] = 'confirmation of registration:' 
+    auth_msg['From'] = SMT_LOGIN
+    auth_msg['To'] = email
+    auth_msg.set_content(text)
+    with smtplib.SMTP(host='smtp.gmail.com', port='587') as s:
+        s.starttls()
+        s.login(SMT_LOGIN, SMT_PASS)
+        s.send_message(auth_msg)
+

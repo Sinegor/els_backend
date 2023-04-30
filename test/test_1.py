@@ -20,7 +20,7 @@ class UserAPITestCase(unittest.TestCase):
     #         testing_data = {
     #             'login': 'SuperMario',
     #             'password': 'password',
-    #             'userMail': 'sie.inn@gmal.com',
+    #             'userMail': 'sinegor.nn@gmail.com',
     #             'phoneNumber': '24',
                 
 
@@ -35,8 +35,8 @@ class UserAPITestCase(unittest.TestCase):
     # def test_login(self):
     #     with TestClient(self.app) as http_client:
     #         test_data = {
-    #                 'username':'Arny_big',
-    #                 'password':'wzadnn'
+    #                 'username':'SuperMario',
+    #                 'password':'password'
     #         }
     #         return_response = http_client.post(f'/auth', data=test_data)
     #         print (return_response.text)
@@ -45,7 +45,7 @@ class UserAPITestCase(unittest.TestCase):
             
     def test_check_current_user(self):
         with TestClient(self.app) as http_client:
-            token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHRlcm5hbF9pZCI6bnVsbCwibG9naW4iOiJTdXBlck1hcmlvIiwidXNlck1haWwiOiJzaWUuaW5uQGdtYWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOm51bGwsInBhc3N3b3JkIjoiJDJiJDEyJHVyYm1LYnBraFU3N3Bvc2NYVUZ6ak8xNk13MTNFZWZIL3RQUVF6MkdPbTRZV1lxVkJ6aWNPIiwicGhvbmVOdW1iZXIiOiIyNCIsImRldGFpbHMiOm51bGwsImRpc2FibGVkIjpudWxsLCJsYXN0X2FjdGl2aXR5IjpudWxsLCJsYXN0X21vZGlmaWNhdGlvbiI6bnVsbCwibW9kaWZpZWRfYnkiOm51bGwsInBheW1lbnRfZGV0YWlscyI6bnVsbCwibGVnYWxfaGVscF9hcHBsaWNhdGlvbnMiOm51bGwsImV4cCI6MTY3ODI4NDUzMX0.b_ywIOXn0Fn-uboQlFOx2zWlSEacX3xvmo_I-yiMsKA'
+            token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDRlNjM5NjcyNmU0NDc1NThlMWFhOTEiLCJleHRlcm5hbF9pZCI6bnVsbCwibG9naW4iOiJTdXBlck1hcmlvIiwidXNlck1haWwiOiJzaW5lZ29yLm5uQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjpudWxsLCJwYXNzd29yZCI6IiQyYiQxMiRPY3ZCWnRoQlVUN2hVRGlseUR5a211SUJEYUY0UGR1NVNlLlJ0Z0FaTnlRNmg0QmR3dVNPSyIsInBob25lTnVtYmVyIjoiMjQiLCJkZXRhaWxzIjpudWxsLCJkaXNhYmxlZCI6bnVsbCwibGFzdF9hY3Rpdml0eSI6bnVsbCwibGFzdF9tb2RpZmljYXRpb24iOm51bGwsIm1vZGlmaWVkX2J5IjpudWxsLCJwYXltZW50X2RldGFpbHMiOm51bGwsImxlZ2FsX2hlbHBfYXBwbGljYXRpb25zIjpudWxsLCJleHAiOjE2ODI4NjY5NjZ9.SDPCdm5DiEwV-JhyDiF7XzPnCSU9i0ZJWwmzcpmQ8K8'
             result_response = http_client.get (f'/auth/users/me/', headers={'Authorization': f'Bearer {token}' })
             print (result_response.text)
             print (result_response.headers)

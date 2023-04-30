@@ -22,10 +22,11 @@ from server.database_clients_methods import (
 from server.database_users_methods import registration_checking
 from server.routes.auth._router import auth_router as router
 from server.auth_users_methods import ( verify_password, authenticate_user, create_access_token,
-                                       get_current_user, get_current_active_user)
+                                       get_current_user, get_current_active_user, push_auth_email)
+from ._router import auth_router as router
 load_dotenv()
 
-router = APIRouter(tags=['Authorization'])
+
 ALGORITHM = os.getenv('ALGORITHM_FOR_AUTH')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
@@ -78,14 +79,9 @@ def registration_client_user(request:Request, new_client:User_Client):
         }
         response = Response (json.dumps(response_data))
         response.set_cookie('Authorization', access_token)
+        push_auth_email(new_client.userMail, new_client.login)
         return response
     except HTTPException as e:
         print (e.detail)
         raise HTTPException(status_code=500, detail=f"A user with next fields: {result_check} already exists!", 
                                 headers={"X-Error": "There goes my error"})        
-
-
-# @router.get("/auth/test/")
-# async def auth_test(token):
-#     user_frontend_info = jwt.decode(token, crypto_key, algorithms=[ALGORITHM])
-#     return (user_frontend_info)
