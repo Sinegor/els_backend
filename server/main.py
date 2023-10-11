@@ -16,7 +16,7 @@ from server.consts import http
 
 app = FastAPI(title='ILA')
 
-# Список того, что разрешено передавать и какими методами пользоваться:
+# Список того, что разрешено передавать и какими методами пользоваться: 
 app.add_middleware(
     CORSMiddleware,
     allow_origins = http.ELA_API_ORIGINS,
